@@ -28,6 +28,17 @@ git clone https://github.com/vfixtechnology/appointment-booking-system.git
 ```php
 cd appointment-booking-system
 ```
+Install Dependencies:
+```php
+composer install
+```
+Setting Up Environment File
+##### Rename .env.example to .env in the main directory. This file holds your app’s environment settings like database and API keys.
+
+Generate Key for project
+```php
+php artisan key:generate
+```
 
 2. Set up the database:
  - Create a MySQL database.
@@ -67,6 +78,13 @@ php artisan serve
 ```
 
 Now, open http://localhost:8000 in your browser to access the system.
+
+
+#### Default Admin login credentials:
+user: admin@example.com
+
+pass: admin123
+
 
 ## 📅 How to Use?
 Create Account For Professionals (Doctors, Astrologers, or etc.)
