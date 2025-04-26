@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,11 +18,11 @@ class SettingFactory extends Factory
     public function definition(): array
     {
         return [
-            'bname' => 'Vfix Technology',
-            'email' => 'admin@yourmail.com',
-            'phone' => '+91 8447 525 204',
-            'currency' => 'INR',
-            'meta_title' => 'Vfix Technology - Advance Booking System',
+            'bname' => 'Room Cleaning Scheduler',
+            'email' => 'kalingg.magpatoc@gmail.com',
+            'phone' => '09773579442',
+            'currency' => 'PHP',
+            'meta_title' => 'RCSS - Booking System',
         ];
     }
 }

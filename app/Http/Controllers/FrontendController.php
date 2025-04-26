@@ -11,7 +11,7 @@ use App\Models\Appointment;
 use Spatie\OpeningHours\OpeningHours;
 use Carbon\Carbon;
 use Illuminate\Support\Number;
-use View;
+use Illuminate\Support\Facades\View;
 
 class FrontendController extends Controller
 {
@@ -19,7 +19,7 @@ class FrontendController extends Controller
     public function __construct()
     {
         $setting = Setting::firstOrFail();
-        view::share('setting',$setting);
+        View::share('setting',$setting);
     }
 
     public function index()
