@@ -6,6 +6,7 @@ use App\Events\BookingCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Notifications\EmployeeNotificationBookingCreated;
+use Illuminate\Support\Facades\Notification;
 
 class EmployeeNotifyBookingCreated
 {
@@ -23,6 +24,6 @@ class EmployeeNotifyBookingCreated
     public function handle(BookingCreated $event): void
     {
         $email = $event->appointment->employee->user->email;
-        \Notification::route('mail',$email)->notify(new EmployeeNotificationBookingCreated($event->appointment));
+        Notification::route('mail', $email)->notify(new EmployeeNotificationBookingCreated($event->appointment));
     }
 }

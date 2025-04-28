@@ -184,7 +184,7 @@
                                                         data-toggle="modal" data-target="#appointmentModal"
                                                         data-id="{{ $appointment->id }}"
                                                         data-name="{{ $appointment->name }}"
-                                                        data-service="{{ $appointment->service->title ?? 'MA' }}"
+                                                        data-service="{{ $appointment->service->title ?? 'NA' }}"
                                                         data-email="{{ $appointment->email }}"
                                                         data-phone="{{ $appointment->phone }}"
                                                         data-employee="{{ $appointment->employee->user->name }}"

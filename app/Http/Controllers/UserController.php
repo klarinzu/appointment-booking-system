@@ -9,8 +9,12 @@ use App\Models\User;
 use App\Models\Service;
 use App\Models\Holiday;
 use App\Models\Employee;
-use Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+
 use Session;
+
 class UserController extends Controller
 {
 
@@ -70,7 +74,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'phone' => $data['phone'] ?? "", // Optional field
             'email_verified_at' => now(),
-            'password' => \Hash::make($data['password']),
+            'password' => Hash::make($data['password']),
         ]);
 
         // Assign the role to the user
@@ -179,7 +183,7 @@ class UserController extends Controller
 
         // Block logged-in user from changing their own role or status
         // Block logged-in user from changing their own role or status
-        if (\Auth::id() === $user->id) {
+        if (Auth::id() === $user->id) {
             // Check if roles key exists AND its value is different from current roles
             if ($request->filled('roles') && !$user->hasAnyRole($request->roles)) {
                 return redirect()->back()->withErrors(['roles' => 'You cannot change your own role.']);
@@ -215,7 +219,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone ?? $user->phone,
-            'password' => $request->password ? \Hash::make($request->password) : $user->password,
+            'password' => $request->password ? Hash::make($request->password) : $user->password,
             'status' => $status,
         ]);
 
@@ -408,8 +412,8 @@ class UserController extends Controller
         // Delete the user's profile image if exists
         if ($user->image) {
             $destination = public_path('uploads/images/profile/' . $user->image);
-            if (\File::exists($destination)) {
-                \File::delete($destination);
+            if (File::exists($destination)) {
+                File::delete($destination);
             }
         }
 
@@ -448,9 +452,9 @@ class UserController extends Controller
 
         //remove old image
         $destination = public_path('uploads/images/profile/'. $user->image);
-        if(\File::exists($destination))
+        if(File::exists($destination))
         {
-            \File::delete($destination);
+            File::delete($destination);
         }
 
         $imageName = time().'.'.$request->image->getClientOriginalExtension();
@@ -468,9 +472,9 @@ class UserController extends Controller
     public function deleteProfileImage(User $user)
     {
         $destination = public_path('uploads/images/profile/'.$user->image);
-        if(\File::exists($destination))
+        if(File::exists($destination))
         {
-            \File::delete($destination);
+            File::delete($destination);
         }
 
         $user->update([

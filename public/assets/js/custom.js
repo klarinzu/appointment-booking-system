@@ -1,7 +1,9 @@
 
         $(document).ready(function() {
 
-            const categories = @json($categories);
+            // Replace the following line with a valid JSON assignment
+            // Example: categories data should be injected into the page as a global variable or via a data attribute
+            const categories = window.categories || [];
 
             const container = $('#categories-container'); // Target the container by ID
 
@@ -23,7 +25,9 @@
             container.html(html); // Insert all generated HTML at once
 
 
-            const employees = @json($employees);
+            // Make sure to define window.employees in your HTML template using Blade:
+            // <script>window.employees = @json($employees);</script>
+            const employees = window.employees || [];
             // console.log(employees);
 
             // Booking state

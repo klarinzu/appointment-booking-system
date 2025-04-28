@@ -7,6 +7,8 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use App\Events\BookingCreated;
 use App\Events\StatusUpdated;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Traits\HasRoles;
 
 
 class AppointmentController extends Controller
@@ -51,25 +53,21 @@ class AppointmentController extends Controller
         // if (auth()->check() && !$request->has('user_id')) {
         //     $validated['user_id'] = auth()->id();
         // }
-
-        $isPrivilegedRole = auth()->check() && (
-            auth()->user()->hasRole('admin') ||
-            auth()->user()->hasRole('moderator') ||
-            auth()->user()->hasRole('employee')
+        $isPrivilegedRole = Auth::check() && (
+            Auth::user()->hasRole('admin') ||
+            Auth::user()->hasRole('moderator') ||
+            Auth::user()->hasRole('employee')
         );
 
-            // If admin/moderator/employee is booking, user_id should be null
         if ($isPrivilegedRole) {
             $validated['user_id'] = null;
-        } elseif (auth()->check() && !$request->has('user_id')) {
+        } elseif (Auth::check() && !$request->has('user_id')) {
             // Otherwise, assign user_id to the authenticated user
-            $validated['user_id'] = auth()->id();
+            $validated['user_id'] = Auth::id();
         }
-
 
         // Generate unique booking ID
         $validated['booking_id'] = 'BK-' . strtoupper(uniqid());
-
 
         $appointment = Appointment::create($validated);
 

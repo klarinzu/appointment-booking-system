@@ -75,8 +75,9 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
     Route::put('employee-bio/{employee}',[EmployeeController::class,'updateBio'])->name('employee.bio.update');
 
 
-
-
+    // Route::get('/login', function () {
+    //     return view('auth.login');
+    // });
 
     Route::get('test',function(Request $request){
         return view('test',  [
