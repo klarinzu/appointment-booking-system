@@ -12,6 +12,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ChatController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,7 @@ Route::get('/',[FrontendController::class,'index'])->name('home');
 Route::middleware(['auth'])->group(function () {
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::post('/chat', ChatController::class)->name('chat.send');
 
     //user
     Route::resource('user',UserController::class)->middleware('permission:users.view| users.create | users.edit | users.delete');
