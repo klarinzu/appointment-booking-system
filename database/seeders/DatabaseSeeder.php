@@ -144,18 +144,18 @@ class DatabaseSeeder extends Seeder
             [
                 'title' => 'Regular Cleaning',
                 'slug' => 'regular-cleaning',
-                'body' => 'Get insights into your future with our expert astrologers.'
+                'body' => 'Focuses on maintaining general cleanliness.'
             ],
             [
                 'title' => 'Deep Cleaning',
                 'slug' => 'deep-cleaning',
-                'body' => 'Professional dental care for your perfect smile.'
+                'body' => 'Focuses on thorough and detailed cleaning.'
             ],
-            // [
-            //     'title' => 'Skin Specialist',
-            //     'slug' => 'skin-specialist',
-            //     'body' => 'Expert care for all your dermatological needs.'
-            // ]
+            [
+                'title' => 'Intensive Cleaning',
+                'slug' => 'intensive-cleaning',
+                'body' => 'Focuses on restoring a space to safe, livable, or like-new condition.'
+            ]
         ];
 
         $services = [];
@@ -163,58 +163,43 @@ class DatabaseSeeder extends Seeder
         foreach ($categories as $categoryData) {
             $category = Category::create($categoryData);
 
-            // Create 2 services for each category
+            // Create a service for each category
             switch ($category->title) {
-                case 'Astrology':
+                case 'Regular Cleaning':
                     $services = [
                         [
                             'title' => 'Regular Cleaning',
                             'slug' => 'regular-cleaning',
                             'price' => 500,
                             'excerpt' => '(Detailed info for regular cleaning)',
+                            'status' => 1,
                         ],
-                        [
-                            // 'title' => 'Love Compatibility',
-                            // 'slug' => 'love-compatibility',
-                            // 'price' => 699,
-                            // 'excerpt' => 'Understand your relationship dynamics through astrology.'
-                        ]
                     ];
                     break;
 
-                case 'Dentist':
+                case 'Deep Cleaning':
                     $services = [
                         [
                             'title' => 'Deep Cleaning',
                             'slug' => 'deep-cleaning',
                             'price' => 1000,
-                            'excerpt' => 'Professional cleaning to maintain oral health.'
+                            'excerpt' => 'Professional cleaning to maintain oral health.',
+                            'status' => 1,
                         ],
-                        // [
-                        //     'title' => 'Dental Implants',
-                        //     'slug' => 'dental-implants',
-                        //     'price' => 1500,
-                        //     'excerpt' => 'Restore your smile with permanent tooth replacements.'
-                        // ]
                     ];
                     break;
 
-                // case 'Skin Specialist':
-                //     $services = [
-                //         [
-                //             'title' => 'Acne Treatment',
-                //             'slug' => 'acne-treatment',
-                //             'price' => 3500,
-                //             'excerpt' => 'Customized solutions for clear, healthy skin.'
-                //         ],
-                //         [
-                //             'title' => 'Anti-Aging Facial',
-                //             'slug' => 'anti-aging-facial',
-                //             'price' => 200,
-                //             'excerpt' => 'Rejuvenate your skin and reduce signs of aging.'
-                //         ]
-                //     ];
-                //     break;
+                case 'Intensive Cleaning':
+                    $services = [
+                        [
+                            'title' => 'Intensive Cleaning',
+                            'slug' => 'intensive-cleaning',
+                            'price' => 5000,
+                            'excerpt' => 'Customized solutions for clear, healthy skin.',
+                            'status' => 1,
+                        ],
+                    ];
+                    break;
             }
 
             foreach ($services as $serviceData) {

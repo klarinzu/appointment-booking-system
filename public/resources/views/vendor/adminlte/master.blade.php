@@ -97,7 +97,7 @@
 
 
    <footer class="main-footer @if(Route::is('login','register','password.confirm','password.update','password.reset','password.request')) mx-auto mt-5 @endif ">
-    <strong>System Developed by BSIT-AI33
+    <strong>System Developed for CAPSTONE PROJECT
       <!-- <a target="_blank" href="https://www.vfixtechnology.com">VFIX TECHNOLOGY</a>. -->
     </strong>
     --- 

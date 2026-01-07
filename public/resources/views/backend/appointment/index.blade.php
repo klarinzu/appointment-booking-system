@@ -1,3 +1,4 @@
+
 @extends('adminlte::page')
 
 @section('title', 'All Appointments')
@@ -174,10 +175,9 @@
                                                         $status = $appointment->status;
                                                         $color = $statusColors[$status] ?? '#7f8c8d';
                                                     @endphp
-                                                    <span class="badge px-2 py-1"
-                                                        style="background-color: {{ $color }}; color: white;">
-                                                        {{ $status }}
-                                                    </span>
+                                                    <span class="badge px-2 py-1" style="background-color: #800000; color: white;">
+    {{ $status }}
+</span>
                                                 </td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm py-0 px-1 view-appointment-btn"

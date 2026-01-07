@@ -5,13 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use App\Models\Category;
-
 use Illuminate\Validation\Rule;
-use File;
-
-
-use Redirect;
-use Auth;
+use Illuminate\Support\Facades\File;
 
 class ServiceController extends Controller
 {
@@ -24,6 +19,12 @@ class ServiceController extends Controller
 
         return view('backend.service.index',compact('services'));
     }
+
+    // public function apiIndex()
+    // {
+    // $services = Service::latest()->get();
+    // return response()->json($services);
+    // }
 
     /**
      * Show the form for creating a new resource.

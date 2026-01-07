@@ -26,9 +26,9 @@
 
 
             // Make sure to define window.employees in your HTML template using Blade:
-            // <script>window.employees = @json($employees);</script>
+            <script>window.employees = @json($employees);</script>
             const employees = window.employees || [];
-            // console.log(employees);
+            console.log(employees);
 
             // Booking state
             let bookingState = {

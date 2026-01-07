@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Setting;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use App\Events\BookingCreated;
 use App\Events\StatusUpdated;
@@ -18,7 +19,8 @@ class AppointmentController extends Controller
     {
         $appointments = Appointment::latest()->get();
         // dd($appointments); // for debugging only
-        return view('backend.appointment.index', compact('appointments'));
+        $services = Service::where('status', 1)->get(); // Get active services
+        return view('backend.appointment.index', compact('appointments', 'services'));
     }
 
 

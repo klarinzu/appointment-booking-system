@@ -354,7 +354,7 @@
                 formData.append('image', file);
 
                 $.ajax({
-                    url: '{{ route('summer.upload.image') }}',
+                    url: "{{ route('summer.upload.image') }}",
                     type: 'POST',
                     data: formData,
                     contentType: false,
@@ -376,7 +376,7 @@
                 console.log('Deleting image with source URL:', imageSrc);
 
                 $.ajax({
-                    url: '{{ route('summer.delete.image') }}',
+                    url: "{{ route('summer.delete.image') }}",
                     type: 'POST',
                     data: {
                         imageSrc: imageSrc
@@ -460,7 +460,6 @@
         $(document).ready(function() {
             // show error message
             @if ($errors->any())
-                //var errorMessage = @json($errors->any()); // Get the first validation error message
                 var Toast = Swal.mixin({
                     toast: true,
                     position: 'top-end',
@@ -476,7 +475,7 @@
 
             // success message
             @if (session('success'))
-                var successMessage = @json(session('success')); // Get the first sucess message
+                var successMessage = @json(session('success')); // Get the first success message
                 var Toast = Swal.mixin({
                     toast: true,
                     position: 'top-end',
