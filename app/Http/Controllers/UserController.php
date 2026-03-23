@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use App\Models\Appointment;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\Holiday;
@@ -84,7 +85,9 @@ class UserController extends Controller
         // transform time slots into from and to combination
         if($request->is_employee)
         {
-            $transformedData = $this->transformOpeningHours($data['days']); // Use $this->transformOpeningHours
+            $transformedData = !empty($data['days'])
+                ? $this->transformOpeningHours($data['days'])
+                : [];
             $data['days'] = $transformedData;
 
             $employee = Employee::create([
@@ -94,7 +97,9 @@ class UserController extends Controller
                 'break_duration'    => $data['break_duration'],
             ]);
 
-            $employee->services()->attach($data['service']);
+            if (!empty($data['service'])) {
+                $employee->services()->attach($data['service']);
+            }
         }
 
         return redirect()->back()->withSuccess('User has been created successfully!');
@@ -105,7 +110,16 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $booking = Appointment::with(['employee.user', 'service', 'user'])->findOrFail($id);
+        $user = auth()->user();
+
+        $canView = $user->hasRole('admin')
+            || $booking->user_id === $user->id
+            || $booking->employee?->user_id === $user->id;
+
+        abort_unless($canView, 403);
+
+        return view('backend.user.booking-detail', compact('booking'));
     }
 
     /**
@@ -131,7 +145,7 @@ class UserController extends Controller
         //dd($user->employee->holidays);
 
         // Get the employee's availability (days) data if it exists and convert to an array
-        $employeeDays = $user->employee->days ?? [];
+        $employeeDays = $user->employee?->days ?? [];
 
         // Transform availability slots
         $employeeDays = $this->transformAvailabilitySlotsForEdit($employeeDays);
@@ -264,7 +278,7 @@ class UserController extends Controller
 
             if ($request->has('holidays.date') && is_array($request->input('holidays.date'))) {
                 // Get all existing holiday IDs for this employee
-                $existingHolidayIds = $user->employee->holidays->pluck('id')->toArray();
+                $existingHolidayIds = $employee->holidays->pluck('id')->toArray();
                 $submittedHolidayIds = [];
 
                 $dates = $request->input('holidays.date');
@@ -275,7 +289,7 @@ class UserController extends Controller
 
                 foreach ($dates as $index => $date) {
                     $holidayData = [
-                        'employee_id' => $user->employee->id,
+                        'employee_id' => $employee->id,
                         'hours' => isset($fromTimes[$index]) && isset($toTimes[$index])
                             ? [$fromTimes[$index] . '-' . $toTimes[$index]]
                             : [],
@@ -310,8 +324,8 @@ class UserController extends Controller
                 }
             } else {
                 // If no holidays were submitted but there were existing ones, delete them all
-                if ($user->employee->holidays()->exists()) {
-                    $user->employee->holidays()->delete();
+                if ($employee->holidays()->exists()) {
+                    $employee->holidays()->delete();
                 }
             }
 
@@ -374,9 +388,10 @@ class UserController extends Controller
     {
         // Retrieve the trashed user with its associated employee, holidays, appointments, and bookings
         $user = User::withTrashed()->findOrFail($id);
+        $employee = $user->employee;
 
         //for employee
-        if($user->employee->appointments->count())
+        if($employee && $employee->appointments->count())
         {
             return back()->withErrors('User cannot be deleted permanently, already engaged in existing bookings!');
         }
@@ -388,9 +403,9 @@ class UserController extends Controller
         }
 
         // Check if the user has an associated employee
-        if ($user->employee) {
+        if ($employee) {
             // Delete all holidays related to the employee
-            foreach ($user->employee->holidays as $holiday) {
+            foreach ($employee->holidays as $holiday) {
                 $holiday->forceDelete(); // Force delete each holiday
             }
 
@@ -401,12 +416,12 @@ class UserController extends Controller
             // }
 
                  // Detach all services related to the employee (many-to-many relationship)
-            if ($user->employee->services()->exists()) {
-                $user->employee->services()->detach(); // Detach the services from the employee
+            if ($employee->services()->exists()) {
+                $employee->services()->detach(); // Detach the services from the employee
             }
 
             // Finally, delete the employee data
-            $user->employee->forceDelete();
+            $employee->forceDelete();
         }
 
         // Delete the user's profile image if exists
@@ -421,6 +436,22 @@ class UserController extends Controller
         $user->forceDelete();
 
         return back()->withSuccess('User and all related data (employee, holidays, appointments, bookings) have been deleted permanently!');
+    }
+
+    public function EmployeeBookings()
+    {
+        $user = auth()->user();
+        $query = Appointment::with(['employee.user', 'service', 'user'])->latest();
+
+        if ($user->hasRole('admin')) {
+            $bookings = $query->get();
+        } elseif ($user->employee) {
+            $bookings = $query->where('employee_id', $user->employee->id)->get();
+        } else {
+            $bookings = $query->where('user_id', $user->id)->get();
+        }
+
+        return view('backend.user.employee-bookings', compact('bookings'));
     }
 
 

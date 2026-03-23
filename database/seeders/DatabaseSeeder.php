@@ -6,7 +6,9 @@ use App\Models\User;
 use App\Models\Setting;
 use App\Models\Employee;
 use App\Models\Category;
+use App\Models\DocumateTransactionType;
 use App\Models\Service;
+use App\Models\StudentProfile;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -21,92 +23,78 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Check if the settings table exists and is empty before seeding
         if (Schema::hasTable('settings') && Setting::count() === 0) {
             Setting::factory()->create();
         }
 
-        // Check if the users table exists and is empty before creating user, permissions, and roles
-        if (Schema::hasTable('users') && User::count() === 0) {
-            $user = $this->createInitialUserWithPermissions();
-            $this->createCategoriesAndServices($user);
+        $this->seedPermissionsAndRoles();
+        $admin = $this->createCoreDocumateUsers();
+        $this->seedDocumateTransactionTypes();
+
+        if (Schema::hasTable('categories') && Category::count() === 0) {
+            $this->createCategoriesAndServices($admin);
         }
+
+        $this->call(DocumateExampleTransactionsSeeder::class);
     }
 
-    protected function createInitialUserWithPermissions()
+    protected function seedPermissionsAndRoles(): void
     {
-        // Define permissions list
         $permissions = [
-            // Permission Management
             'permissions.view',
             'permissions.create',
             'permissions.edit',
             'permissions.delete',
-
-            // User Management
             'users.view',
             'users.create',
             'users.edit',
             'users.delete',
-
-            // Appointment Management
             'appointments.view',
             'appointments.create',
             'appointments.edit',
             'appointments.delete',
-
-            // Category Management
             'categories.view',
             'categories.create',
             'categories.edit',
             'categories.delete',
-
-            // Service Management
             'services.view',
             'services.create',
             'services.edit',
             'services.delete',
-
-            // Settings
-            'settings.edit'
+            'settings.edit',
+            'transactions.view',
+            'transactions.submit',
+            'transactions.review',
+            'transactions.export',
+            'clearances.tag',
+            'handbook.manage',
+            'chat.use',
         ];
 
-        // Create each permission if it doesn't exist
         foreach ($permissions as $permissionName) {
-            Permission::firstOrCreate(['name' => $permissionName]);
+            Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
         }
 
-        // Create roles if they do not exist
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $moderatorRole = Role::firstOrCreate(['name' => 'moderator']);
-        $employeeRole = Role::firstOrCreate(['name' => 'employee']);
-        $subscriberRole = Role::firstOrCreate(['name' => 'subscriber']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $moderatorRole = Role::firstOrCreate(['name' => 'moderator', 'guard_name' => 'web']);
+        $employeeRole = Role::firstOrCreate(['name' => 'employee', 'guard_name' => 'web']);
+        $subscriberRole = Role::firstOrCreate(['name' => 'subscriber', 'guard_name' => 'web']);
+        $administratorRole = Role::firstOrCreate(['name' => 'administrator', 'guard_name' => 'web']);
+        $studentOfficerRole = Role::firstOrCreate(['name' => 'student-officer', 'guard_name' => 'web']);
+        $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
 
-        // Assign all permissions to the 'admin' role
         $adminRole->syncPermissions(Permission::all());
+        $administratorRole->syncPermissions(Permission::all());
 
-        // Create the initial admin user
-        $user = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'phone' => '1234567890',
-            'status' => 1,
-            'email_verified_at' => now(),
-            'password' => Hash::make('admin123'),
-        ]);
-
-        // Assign specific permissions to the 'moderator' role
         $moderatorPermissions = [
             'appointments.view',
             'appointments.create',
             'appointments.edit',
             'appointments.delete',
-
             'categories.view',
             'categories.create',
             'categories.edit',
             'categories.delete',
-
             'services.view',
             'services.create',
             'services.edit',
@@ -114,15 +102,30 @@ class DatabaseSeeder extends Seeder
         ];
 
         $moderatorRole->syncPermissions(Permission::whereIn('name', $moderatorPermissions)->get());
+        $employeeRole->syncPermissions(Permission::whereIn('name', ['appointments.view', 'appointments.edit'])->get());
+        $subscriberRole->syncPermissions(Permission::whereIn('name', ['transactions.view', 'transactions.submit', 'chat.use'])->get());
+        $studentRole->syncPermissions(Permission::whereIn('name', ['transactions.view', 'transactions.submit', 'chat.use'])->get());
+        $studentOfficerRole->syncPermissions(Permission::whereIn('name', ['transactions.view', 'transactions.review', 'transactions.export', 'clearances.tag', 'chat.use'])->get());
+    }
 
-        // Assign the 'admin' role to the user
-        $user->assignRole($adminRole);
+    protected function createCoreDocumateUsers(): User
+    {
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'DOCUMATE Administrator',
+                'phone' => '1234567890',
+                'status' => 1,
+                'email_verified_at' => now(),
+                'password' => Hash::make('admin123'),
+            ]
+        );
 
+        $admin->syncRoles(['admin', 'administrator']);
 
-
-         // Create admin as employee with additional details
-        $employee = Employee::create([
-            'user_id' => $user->id,
+        Employee::firstOrCreate([
+            'user_id' => $admin->id,
+        ], [
             'days' => [
                 "monday" => ["06:00-22:00"],
                 "tuesday" => ["06:00-15:00", "16:00-22:00"],
@@ -134,27 +137,78 @@ class DatabaseSeeder extends Seeder
             'slot_duration' => 30
         ]);
 
-        return $user;
+        $officer = User::firstOrCreate(
+            ['email' => 'officer@example.com'],
+            [
+                'name' => 'Student Officer',
+                'phone' => '1234567891',
+                'status' => 1,
+                'email_verified_at' => now(),
+                'password' => Hash::make('officer123'),
+            ]
+        );
+        $officer->syncRoles(['student-officer']);
+
+        $student = User::firstOrCreate(
+            ['email' => 'student@example.com'],
+            [
+                'name' => 'Student User',
+                'phone' => '1234567892',
+                'status' => 1,
+                'email_verified_at' => now(),
+                'password' => Hash::make('student123'),
+            ]
+        );
+        $student->syncRoles(['student']);
+
+        StudentProfile::firstOrCreate(
+            ['user_id' => $student->id],
+            [
+                'student_number' => '2026-0001',
+                'course' => 'BS Information Technology',
+                'college' => 'College of Computing',
+                'year_level' => '3',
+                'section' => 'A',
+                'address' => 'Sample Student Address',
+                'guardian_name' => 'Maria Student',
+                'guardian_contact' => '09123456789',
+                'emergency_contact' => '09123456780',
+                'clearance_status' => 'cleared',
+                'tagged_by' => $officer->id,
+                'tagged_at' => now(),
+            ]
+        );
+
+        return $admin;
+    }
+
+    protected function seedDocumateTransactionTypes(): void
+    {
+        foreach (config('documate.transaction_types', []) as $transactionType) {
+            DocumateTransactionType::updateOrCreate(
+                ['code' => $transactionType['code']],
+                $transactionType
+            );
+        }
     }
 
     protected function createCategoriesAndServices(User $user)
     {
-        // Create categories
         $categories = [
             [
-                'title' => 'Regular Cleaning',
-                'slug' => 'regular-cleaning',
-                'body' => 'Focuses on maintaining general cleanliness.'
+                'title' => 'Document Intake',
+                'slug' => 'document-intake',
+                'body' => 'Handles initial DOCUMATE submissions and front-desk transaction intake.'
             ],
             [
-                'title' => 'Deep Cleaning',
-                'slug' => 'deep-cleaning',
-                'body' => 'Focuses on thorough and detailed cleaning.'
+                'title' => 'Clearance Assistance',
+                'slug' => 'clearance-assistance',
+                'body' => 'Supports clearance validation and related student records processing.'
             ],
             [
-                'title' => 'Intensive Cleaning',
-                'slug' => 'intensive-cleaning',
-                'body' => 'Focuses on restoring a space to safe, livable, or like-new condition.'
+                'title' => 'Student Affairs Support',
+                'slug' => 'student-affairs-support',
+                'body' => 'Supports student development requests, approvals, and office coordination.'
             ]
         ];
 
@@ -163,39 +217,38 @@ class DatabaseSeeder extends Seeder
         foreach ($categories as $categoryData) {
             $category = Category::create($categoryData);
 
-            // Create a service for each category
             switch ($category->title) {
-                case 'Regular Cleaning':
+                case 'Document Intake':
                     $services = [
                         [
-                            'title' => 'Regular Cleaning',
-                            'slug' => 'regular-cleaning',
+                            'title' => 'Transaction Intake Support',
+                            'slug' => 'transaction-intake-support',
                             'price' => 500,
-                            'excerpt' => '(Detailed info for regular cleaning)',
+                            'excerpt' => 'General support for receiving and processing student transaction requests.',
                             'status' => 1,
                         ],
                     ];
                     break;
 
-                case 'Deep Cleaning':
+                case 'Clearance Assistance':
                     $services = [
                         [
-                            'title' => 'Deep Cleaning',
-                            'slug' => 'deep-cleaning',
+                            'title' => 'Clearance Evaluation',
+                            'slug' => 'clearance-evaluation',
                             'price' => 1000,
-                            'excerpt' => 'Professional cleaning to maintain oral health.',
+                            'excerpt' => 'Validation support for clearance tagging and student accountability checks.',
                             'status' => 1,
                         ],
                     ];
                     break;
 
-                case 'Intensive Cleaning':
+                case 'Student Affairs Support':
                     $services = [
                         [
-                            'title' => 'Intensive Cleaning',
-                            'slug' => 'intensive-cleaning',
+                            'title' => 'Student Transaction Assistance',
+                            'slug' => 'student-transaction-assistance',
                             'price' => 5000,
-                            'excerpt' => 'Customized solutions for clear, healthy skin.',
+                            'excerpt' => 'Coordinated support for VPSD requests, schedules, and endorsements.',
                             'status' => 1,
                         ],
                     ];
@@ -213,7 +266,6 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Attach all services to the employee (not directly to user)
         if ($user->employee) {
             $allServices = Service::all();
             $user->employee->services()->sync($allServices->pluck('id'));

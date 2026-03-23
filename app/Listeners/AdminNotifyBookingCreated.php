@@ -24,7 +24,12 @@ class AdminNotifyBookingCreated
      */
     public function handle(BookingCreated $event): void
     {
-        $setting = Setting::firstOrFail();
-        \Notification::route('mail',$setting['email'])->notify(new AdminNotificationBookingCreated($event->appointment));
+        $setting = Setting::current();
+
+        if (!filled($setting->email)) {
+            return;
+        }
+
+        \Notification::route('mail', $setting->email)->notify(new AdminNotificationBookingCreated($event->appointment));
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Config;
-use View;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,9 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(PaymentMethodService::class, function ($app) {
-            return new PaymentMethodService();
-        });
+        //
     }
 
     /**
@@ -25,10 +23,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-          Gate::before(function ($user, $ability) {
-            return $user->id == 1 ? true : null;
+        View::addLocation(resource_path());
+        View::share(
+            'setting',
+            Schema::hasTable('settings') ? Setting::current() : new Setting(Setting::defaults())
+        );
+
+        Gate::before(function ($user) {
+            return (int) ($user?->id ?? 0) === 1 ? true : null;
         });
-
-
     }
 }

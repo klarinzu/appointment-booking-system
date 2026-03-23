@@ -22,7 +22,12 @@ class NotifyAdminAppointmentStatusUpdated
 
     public function handle(StatusUpdated $event): void
     {
-        $setting = Setting::firstOrFail();
-        \Notification::route('mail', $setting['email'])->notify(new AdminNotificationBookingUpdated($event->appointment));
+        $setting = Setting::current();
+
+        if (!filled($setting->email)) {
+            return;
+        }
+
+        \Notification::route('mail', $setting->email)->notify(new AdminNotificationBookingUpdated($event->appointment));
     }
 }

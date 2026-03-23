@@ -63,7 +63,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        $categories = Category::where('parent_id',null)->orderby('title','asc')->get();
+        $categories = Category::orderBy('title', 'asc')->get();
         return view('backend.category.show',compact('category','categories'));
     }
 

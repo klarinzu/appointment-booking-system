@@ -8,38 +8,30 @@ use App\Models\Employee;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Appointment;
+use App\Models\DocumateTransactionType;
 use Spatie\OpeningHours\OpeningHours;
 use Carbon\Carbon;
 use Illuminate\Support\Number;
-use Illuminate\Support\Facades\View;
 
 class FrontendController extends Controller
 {
-
-    public function __construct()
-    {
-        $setting = Setting::firstOrFail();
-        View::share('setting',$setting);
-    }
-
     public function index()
     {
-        $categories = Category::with([
-            'services' => function($query) {
-                $query->where('status', 1) // Only active services
-                    ->with('employees'); // Load all employees for each service
-            }
-        ])->where('status', 1)->get();
-
-        $employees = Employee::with('services')->with('user')->get();
-
-        return view('frontend.index', compact('categories','employees'));
+        return view('frontend.index', [
+            'transactionTypes' => DocumateTransactionType::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(),
+            'officeLocations' => config('documate.office_locations'),
+            'statusLabels' => config('documate.statuses'),
+            'handbook' => config('documate.handbook'),
+        ]);
     }
 
 
     public function getServices(Request $request, Category $category)
     {
-        $setting = Setting::firstOrFail();
+        $setting = Setting::current();
 
         $services = $category->services()
             ->where('status', 1)
@@ -47,11 +39,11 @@ class FrontendController extends Controller
             ->get()
             ->map(function ($service) use ($setting) {
                 if (isset($service->price)) {
-                    $service->price = Number::currency($service->price, $setting->currency);
+                    $service->price = $this->formatCurrency($service->price, $setting->currency);
                 }
 
                 if (isset($service->sale_price)) {
-                    $service->sale_price = Number::currency($service->sale_price, $setting->currency);
+                    $service->sale_price = $this->formatCurrency($service->sale_price, $setting->currency);
                 }
 
                 return $service;
@@ -101,8 +93,7 @@ class FrontendController extends Controller
         }
 
         try {
-            // Function to ensure proper time formatting
-            function formatTimeRange($timeRange) {
+            $formatTimeRange = static function ($timeRange) {
                 // Handle appointment format (e.g., "06:00 AM - 06:30 AM")
                 if (str_contains($timeRange, 'AM') || str_contains($timeRange, 'PM')) {
                     $timeRange = str_replace([' AM', ' PM', ' '], '', $timeRange);
@@ -116,13 +107,13 @@ class FrontendController extends Controller
                 }, $times);
 
                 return implode('-', $formattedTimes);
-            }
+            };
 
             // Process holidays expections
-            $holidaysExceptions = $employee->holidays->mapWithKeys(function ($holiday) {
+            $holidaysExceptions = $employee->holidays->mapWithKeys(function ($holiday) use ($formatTimeRange) {
                 $hours = !empty($holiday->hours)
-                    ? collect($holiday->hours)->map(function ($timeRange) {
-                        return formatTimeRange($timeRange);
+                    ? collect($holiday->hours)->map(function ($timeRange) use ($formatTimeRange) {
+                        return $formatTimeRange($timeRange);
                     })->toArray()
                     : [];
 
@@ -131,7 +122,7 @@ class FrontendController extends Controller
 
             // using spatie opening hours package to process data and expections
             $openingHours = OpeningHours::create(array_merge(
-                $employee->days,
+                $employee->days ?? [],
                 ['exceptions' => $holidaysExceptions]
             ));
 
@@ -180,12 +171,17 @@ class FrontendController extends Controller
 
         // Convert existing appointments to time ranges we can compare against
         $bookedSlots = $existingAppointments->map(function ($appointment) {
-            $times = explode(' - ', $appointment->booking_time);
+            $times = preg_split('/\s*-\s*/', (string) $appointment->booking_time);
+
+            if (count($times) !== 2) {
+                return null;
+            }
+
             return [
                 'start' => Carbon::createFromFormat('g:i A', trim($times[0]))->format('H:i'),
                 'end' => Carbon::createFromFormat('g:i A', trim($times[1]))->format('H:i')
             ];
-        })->toArray();
+        })->filter()->values()->toArray();
 
         foreach ($availableRanges as $range) {
             $start = Carbon::parse($date->toDateString() . ' ' . $range->start()->format('H:i'));
@@ -247,5 +243,15 @@ class FrontendController extends Controller
         return $slots;
     }
 
+    protected function formatCurrency(float|int|string $amount, ?string $currency): string
+    {
+        $currency = $currency ?: 'PHP';
+
+        try {
+            return Number::currency((float) $amount, $currency);
+        } catch (\Throwable) {
+            return trim($currency . ' ' . number_format((float) $amount, 2));
+        }
+    }
 
 }

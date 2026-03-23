@@ -23,6 +23,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'extension_name',
+        'has_no_middle_name',
         'email',
         'password',
         'phone',
@@ -51,12 +56,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'has_no_middle_name' => 'boolean',
         ];
     }
 
     public function employee()
     {
         return $this->hasOne(Employee::class);
+    }
+
+    public function studentProfile()
+    {
+        return $this->hasOne(StudentProfile::class);
     }
 
     public function services()
@@ -115,6 +126,26 @@ class User extends Authenticatable
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function documateTransactions()
+    {
+        return $this->hasMany(DocumateTransaction::class);
+    }
+
+    public function isDocumateAdmin(): bool
+    {
+        return $this->hasRole('administrator') || $this->hasRole('admin');
+    }
+
+    public function isStudentOfficer(): bool
+    {
+        return $this->hasRole('student-officer');
+    }
+
+    public function isStudentUser(): bool
+    {
+        return $this->hasRole('student') || $this->hasRole('subscriber');
     }
 
 }

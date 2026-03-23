@@ -61,23 +61,97 @@ MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=your@email.com
  ```
 
-4. Run migrations & seed dummy data:
+4. Start the Docker containers:
  ```php
-php artisan migrate
-php artisan db:seed
+docker compose up -d student-dashboard db pma
  ```
 
-5. Start the queue for email processing:
+5. Run migrations & seed dummy data inside the student dashboard container:
+```php
+docker compose exec student-dashboard php artisan migrate
+docker compose exec student-dashboard php artisan db:seed
+```
+
+6. Start the queue listener and frontend assets:
 ```php
 php artisan queue:listen
+npm run dev
 ```
 
-5. Start the development server:
-```php
-php artisan serve
+Now, open http://127.0.0.1:8000 in your browser to access the student dashboard from Docker.
+
+## Faster WSL setup
+
+If the browser feels slow while the project lives on `C:\`, run it from the Ubuntu WSL filesystem instead. This is usually much faster than serving a Docker bind mount from Windows.
+
+From PowerShell in the project root:
+
+```powershell
+.\scripts\run-in-wsl.ps1
 ```
 
-Now, open http://localhost:8000 in your browser to access the system.
+That command will:
+
+```text
+1. Sync this project into Ubuntu WSL at ~/projects/appointment-booking-system
+2. Keep the working copy inside the Linux filesystem
+3. Start docker compose from Ubuntu WSL
+4. Run migrations automatically
+```
+
+Optional flags:
+
+```powershell
+.\scripts\run-in-wsl.ps1 -InstallNode
+.\scripts\run-in-wsl.ps1 -SkipInstall
+.\scripts\run-in-wsl.ps1 -SkipMigrate
+```
+
+After the first sync, future starts are faster directly from Ubuntu:
+
+```bash
+cd ~/projects/appointment-booking-system
+docker compose up -d student-dashboard db pma
+```
+
+## Windows auto-start
+
+To start the Ubuntu WSL stack automatically every time you sign in to Windows:
+
+```powershell
+.\scripts\install-autostart.ps1
+```
+
+This installs a hidden launcher in your Windows Startup folder. The launcher:
+
+```text
+1. Starts Docker Desktop if it is not already running
+2. Waits for Docker to become ready
+3. Syncs the project into Ubuntu WSL
+4. Starts the student-dashboard, db, and pma containers
+```
+
+Logs are written to:
+
+```text
+storage/logs/windows-wsl-autostart.log
+```
+
+To remove the auto-start task later:
+
+```powershell
+.\scripts\remove-autostart.ps1
+```
+
+## Troubleshooting
+
+If Laravel shows `Permission denied` for `storage` or `bootstrap/cache`, run this from PowerShell in the project root:
+
+```powershell
+.\scripts\fix-permissions.ps1
+```
+
+That shortcut repairs the writable Laravel directories inside the `student-dashboard` container and clears compiled Blade views afterward.
 
 ## Admin login credentials:
 link: http://localhost:8000/login

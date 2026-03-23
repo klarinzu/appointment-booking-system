@@ -14,9 +14,9 @@ return [
     |
     */
 
-    'title' => env('APP_NAME'),
+    'title' => 'LNU DOCUMATE',
     'title_prefix' => '',
-    'title_postfix' => '',
+    'title_postfix' => ' | Leyte Normal University',
 
     /*
     |--------------------------------------------------------------------------
@@ -32,6 +32,7 @@ return [
 
     'use_ico_only' => false,
     'use_full_favicon' => false,
+    'favicon' => 'uploads/images/lnu logo.png',
 
     /*
     |--------------------------------------------------------------------------
@@ -63,12 +64,12 @@ return [
     |
     */
 
-    'logo' => '<strong>' . env('APP_NAME') . '</strong>',
-    'logo_img' => '',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
-    'logo_img_xl' => null,
-    'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => '',
+    'logo' => '<strong>LNU</strong> DOCUMATE',
+    'logo_img' => 'uploads/images/lnu logo.png',
+    'logo_img_class' => 'brand-image',
+    'logo_img_xl' => 'uploads/images/lnu logo.png',
+    'logo_img_xl_class' => 'brand-image-xl single',
+    'logo_img_alt' => 'LNU DOCUMATE Logo',
 
     /*
     |--------------------------------------------------------------------------
@@ -84,13 +85,13 @@ return [
     */
 
     'auth_logo' => [
-        'enabled' => false,
+        'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'Auth Logo',
-            'class' => '',
-            'width' => 50,
-            'height' => 50,
+            'path' => 'uploads/images/lnu logo.png',
+            'alt' => 'LNU DOCUMATE Logo',
+            'class' => 'doc-auth-logo-img',
+            'width' => null,
+            'height' => null,
         ],
     ],
 
@@ -114,7 +115,7 @@ return [
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'AdminLTE Preloader Image',
+            'alt' => 'LNU DOCUMATE',
             'effect' => 'animation__shake',
             'width' => 60,
             'height' => 60,
@@ -191,8 +192,8 @@ return [
     */
 
     'classes_body' => '',
-    'classes_brand' => '',
-    'classes_brand_text' => '',
+    'classes_brand' => 'doc-brand-link',
+    'classes_brand_text' => 'doc-brand-text',
     'classes_content_wrapper' => '',
     'classes_content_header' => '',
     'classes_content' => '',
@@ -299,7 +300,6 @@ return [
     */
 
     'menu' => [
-        // Navbar items:
         [
             'type' => 'navbar-search',
             'text' => 'search',
@@ -309,150 +309,68 @@ return [
             'type' => 'fullscreen-widget',
             'topnav_right' => false,
         ],
-
-        // Sidebar items:
         [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
-
         [
             'text' => 'Dashboard',
-            'route' => 'home',
-            'icon' => 'fas fa-fw fa-home',
-            'route' => 'dashboard'
+            'icon' => 'fas fa-fw fa-house-user',
+            'route' => 'dashboard',
         ],
         [
-            'text' => ' All Appointments',
-            'route' => 'appointments',
-            'icon' => 'fas fa-calendar-check',
-            'can'  => 'appointments.view | appointments.create | appointments.edit | appointments.delete',
-
+            'text' => 'Scheduled Calendar',
+            'icon' => 'fas fa-fw fa-calendar-alt',
+            'route' => 'documate.calendar.index',
         ],
-
         [
-            'text' => 'Categories',
-            'icon' => 'fas fa-fw fa-folder',
-            'url'  => 'category*',
-            'can'  => 'categories.view | categories.create | categories.edit | categories.delete',
+            'text' => 'Transactions',
+            'icon' => 'fas fa-fw fa-file-signature',
+            'route' => 'documate.transactions.index',
+            'can' => 'transactions.view',
+        ],
+        [
+            'text' => 'Clearance Tagging',
+            'icon' => 'fas fa-fw fa-user-check',
+            'route' => 'documate.clearances.index',
+            'can' => 'clearances.tag',
+        ],
+        [
+            'text' => 'Student Handbook',
+            'icon' => 'fas fa-fw fa-book-open',
+            'route' => 'documate.handbook.index',
+        ],
+        [
+            'text' => 'Profile',
+            'route' => 'profile',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+        [
+            'text' => 'Users',
+            'url' => 'user*',
+            'icon' => 'fas fa-fw fa-users',
+            'can' => 'users.view',
             'submenu' => [
                 [
                     'text' => 'Add New',
                     'icon' => 'fas fa-fw fa-plus',
-                    'route' => 'category.create',
-                    'can'   => 'categories.create'
+                    'route' => 'user.create',
+                    'can' => 'users.create',
                 ],
                 [
                     'text' => 'View All',
-                    'icon' => 'fas fa-fw fa-eye',
-                    'route' => 'category.index',
-                    'can'   => 'categories.view'
-                ],
-
-            ],
-        ],
-        [
-            'text'    => 'Users',
-            'url'  => 'user*',
-            'icon'    => 'fas fa-fw fa-users',
-            'can'  => 'users.view | users.create | users.edit | users.delete',
-            'submenu' => [
-                [
-                    'text' => 'Add New',
-                    'icon'    => 'fas fa-fw fa-plus',
-                    'route'  => 'user.create',
-                    'can'  => 'users.create',
-                ],
-                [
-                    'text' => 'View All',
-                    'icon'    => 'fas fa-users',
+                    'icon' => 'fas fa-fw fa-list',
                     'route' => 'user.index',
+                    'can' => 'users.view',
                 ],
-
-
-
             ],
-        ],
-        [
-            'text'    => 'Services',
-            'url'  => 'service*',
-            'icon'    => 'fas fa-fw fa-briefcase',
-            'can'  => 'services.view | services.create | services.edit | services.delete',
-            'submenu' => [
-
-                [
-                    'text' => 'Create Service',
-                    'icon'    => 'fas fa-fw fa-plus',
-                    'route'  => 'service.create',
-                    'can'    => 'services.create'
-                ],
-                [
-                    'text' => 'View All',
-                    'icon'    => 'fas fa-fw fa-eye',
-                    'route'  => 'service.index',
-                    'can'    => 'services.view'
-                ],
-                [
-                    'text' => 'View Trash',
-                    'icon'    => 'fas fa-fw fa-trash',
-                    'route'  => 'service.trash',
-                    'can'    => 'services.view'
-                ],
-
-            ],
-        ],
-        [
-            'text' => 'profile',
-            'route' => 'profile',
-            'icon' => 'fas fa-fw fa-user',
-
         ],
         [
             'text' => 'Settings',
-            'route'  => 'setting',
+            'route' => 'setting',
             'icon' => 'fas fa-fw fa-cog',
-            'can'  => 'setting update',
+            'can' => 'settings.edit',
         ],
-
-        // [
-        //     'text' => 'multilevel',
-        //     'icon' => 'fas fa-fw fa-share',
-        //     'submenu' => [
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //         ],
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //             'submenu' => [
-        //                 [
-        //                     'text' => 'level_two',
-        //                     'url' => '#',
-        //                 ],
-        //                 [
-        //                     'text' => 'level_two',
-        //                     'url' => '#',
-        //                     'submenu' => [
-        //                         [
-        //                             'text' => 'level_three',
-        //                             'url' => '#',
-        //                         ],
-        //                         [
-        //                             'text' => 'level_three',
-        //                             'url' => '#',
-        //                         ],
-        //                     ],
-        //                 ],
-        //             ],
-        //         ],
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //         ],
-        //     ],
-        // ],
-
     ],
 
     /*

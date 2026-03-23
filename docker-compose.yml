@@ -1,13 +1,14 @@
 services:
-  api:
+  student-dashboard:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: appointment-booking-api
+    container_name: appointment-booking-student-dashboard
     ports:
       - "8000:80"
-    volumes:  
+    volumes:
       - ./:/var/www/html
+    command: ["/bin/sh", "/var/www/html/scripts/docker-entrypoint.sh"]
     working_dir: /var/www/html
     environment:
       DB_CONNECTION: mysql
